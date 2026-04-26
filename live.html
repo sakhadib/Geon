@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Geon v1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+
+  <style>
+    .CodeMirror {
+      height: 100%;
+      font-size: 14px;
+    }
+
+    /* Geon syntax colors */
+    .cm-keyword { color: #569cd6; }
+    .cm-string  { color: #ce9178; }
+    .cm-number  { color: #b5cea8; }
+    .cm-comment { color: #6a9955; }
+    .cm-atom    { color: #d7ba7d; }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+<!-- Header -->
+<header class="flex items-center justify-between px-6 py-4 bg-gray-900 text-white shadow">
+  <div class="flex items-center gap-3">
+    <span class="font-semibold text-lg">Geon v1</span>
+    <span class="text-gray-400 text-sm">Geometric DSL → SVG</span>
+  </div>
+
+  <div class="flex items-center gap-4 text-sm">
+    <a href="https://github.com/sakhadib/geon" target="_blank" class="hover:text-blue-400">GitHub</a>
+    <a href="./" class="hover:text-blue-400">Docs</a>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="flex h-[calc(100vh-64px)]">
+
+  <!-- Editor -->
+  <div class="w-[40%] border-r border-gray-300 bg-gray-900">
+    <textarea id="editor">
+scene 600x400
+grid x -5 to 5 step 1 y -5 to 5 step 1
+
+point A (0,0)
+point B (3,0)
+
+segment AB from A to B stroke black width 2
+
+circle C center A r 2 stroke blue
+
+polygon T points A B (1,2) fill rgba(255,0,0,0.2)
+
+point P C.center + (1,0)
+
+label A "Origin"
+label C "Circle"
+label T "Triangle"
+    </textarea>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Controls -->
+    <div class="flex items-center justify-between px-4 py-2 bg-white border-b">
+      <div class="text-sm text-gray-600">
+        Live Geon Rendering
+      </div>
+
+      <button 
+        onclick="renderGeon()" 
+        class="px-4 py-1.5 text-sm bg-black text-white rounded hover:bg-gray-800 transition"
+      >
+        Render
+      </button>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas" class="flex-1 flex items-center justify-center bg-white">
+    </div>
+
+  </div>
+
+</div>
+
+<script src="./geon.js"></script>
+
+<script>
+  // --- Geon syntax mode ---
+  CodeMirror.defineMode("geon", function () {
+    const keywords = /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|x|y|step)\b/;
+
+    return {
+      token: function (stream) {
+        if (stream.match(/#.*/)) return "comment";
+        if (stream.match(/"[^"]*"/)) return "string";
+        if (stream.match(keywords)) return "keyword";
+        if (stream.match(/-?\d+(\.\d+)?/)) return "number";
+        if (stream.match(/\([^)]+\)/)) return "atom";
+        stream.next();
+        return null;
+      }
+    };
+  });
+
+  // --- Initialize editor ---
+  const cm = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    lineNumbers: true,
+    mode: "geon",
+    theme: "dracula"
+  });
+
+  function renderGeon() {
+    const code = cm.getValue();
+    const canvas = document.getElementById("canvas");
+    Geon.render(code, canvas);
+  }
+
+  window.onload = renderGeon;
+</script>
+
+</body>
+</html>
