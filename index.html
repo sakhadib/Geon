@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Geon Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CodeMirror core -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+    }
+
+    header {
+      padding: 16px;
+      background: #111;
+      color: #fff;
+      font-size: 18px;
+    }
+
+    .container {
+      display: flex;
+      height: calc(100vh - 56px);
+    }
+
+    .editor {
+      width: 40%;
+      height: 100%;
+      border-right: 1px solid #ccc;
+    }
+
+    .CodeMirror {
+      height: 100%;
+      font-size: 14px;
+    }
+
+    /* Geon syntax colors */
+    .cm-keyword { color: #569cd6; }
+    .cm-string  { color: #ce9178; }
+    .cm-number  { color: #b5cea8; }
+    .cm-comment { color: #6a9955; }
+    .cm-atom    { color: #d7ba7d; }
+
+    .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .controls {
+      padding: 8px;
+      background: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+
+    button {
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
+    #canvas {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+<header>Geon v0.1</header>
+
+<div class="container">
+  <div class="editor">
+    <textarea id="editor">
+scene 600x400
+grid x -5 to 5 step 1 y -5 to 5 step 1
+
+point A (0,0)
+point B (3,0)
+
+segment AB from A to B stroke black width 2
+
+circle C center A r 2 stroke blue
+
+polygon T points A B (1,2) fill rgba(255,0,0,0.2)
+
+point P C.center + (1,0)
+
+label A "Origin"
+label C "Circle"
+label T "Triangle"
+    </textarea>
+  </div>
+
+  <div class="right">
+    <div class="controls">
+      <button onclick="renderGeon()">Render</button>
+    </div>
+    <div id="canvas"></div>
+  </div>
+</div>
+
+<script src="./geon.js"></script>
+
+<script>
+  // --- Geon syntax mode ---
+  CodeMirror.defineMode("geon", function () {
+    const keywords = /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|x|y|step)\b/;
+
+    return {
+      token: function (stream) {
+        if (stream.match(/#.*/)) return "comment";
+        if (stream.match(/"[^"]*"/)) return "string";
+        if (stream.match(keywords)) return "keyword";
+        if (stream.match(/-?\d+(\.\d+)?/)) return "number";
+        if (stream.match(/\([^)]+\)/)) return "atom";
+        stream.next();
+        return null;
+      }
+    };
+  });
+
+  // --- Initialize editor ---
+  const cm = CodeMirror.fromTextArea(document.getElementById("editor"), {
+    lineNumbers: true,
+    mode: "geon",
+    theme: "dracula"
+  });
+
+  function renderGeon() {
+    const code = cm.getValue();
+    const canvas = document.getElementById("canvas");
+    Geon.render(code, canvas);
+  }
+
+  window.onload = renderGeon;
+</script>
+
+</body>
+</html>
