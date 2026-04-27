@@ -577,6 +577,16 @@
     // ---- Labels (on top) ----
     const labelsG = el("g", { "class": "geon-labels", "font-family": "sans-serif", "text-anchor": "middle" });
 
+    function rectIntersect(r1, r2) {
+      const pad = 2; // small padding
+      return !(r2.x >= r1.x + r1.w + pad || 
+               r2.x + r2.w + pad <= r1.x || 
+               r2.y >= r1.y + r1.h + pad || 
+               r2.y + r2.h + pad <= r1.y);
+    }
+
+    const placedBoxes = [];
+
     for (const lbl of labels) {
       const sym = symbols[lbl.target];
       if (!sym) continue;
@@ -587,11 +597,47 @@
       else if (sym.kind === "polygon") anchor = sym.anchors.centroid;
       else continue;
       const [sx, sy] = pt(...anchor);
+
+      const fontSize = lbl.style ? lbl.style.size : 12;
+      const approxW = lbl.text.length * (fontSize * 0.55);
+      const approxH = fontSize * 1.2;
+
+      let px = sx;
+      let py = sy - 5;
+      let box = { x: px - approxW / 2, y: py - approxH * 0.8, w: approxW, h: approxH };
+
+      let attempts = 0;
+      let overlapping = true;
+      let currentAngle = -Math.PI / 2; // Start upwards
+      let currentR = 0;
+
+      while (attempts < 100) {
+        overlapping = false;
+        for (const p of placedBoxes) {
+          if (rectIntersect(box, p)) {
+            overlapping = true;
+            break;
+          }
+        }
+        if (!overlapping) break;
+
+        // Advance Archimedean spiral
+        currentAngle += 0.5; // step angle
+        currentR += 2.0; // increase radius
+
+        px = sx + Math.cos(currentAngle) * currentR;
+        py = sy - 5 + Math.sin(currentAngle) * currentR;
+        box = { x: px - approxW / 2, y: py - approxH * 0.8, w: approxW, h: approxH };
+        attempts++;
+      }
+
+      placedBoxes.push(box);
+
       const t = el("text", { 
-        x: sx, 
-        y: sy - 5, 
-        fill: lbl.style.color,
-        "font-size": lbl.style.size
+        x: px, 
+        y: py, 
+        fill: lbl.style ? lbl.style.color : "#222",
+        "font-size": fontSize
       });
       t.textContent = lbl.text;
       labelsG.appendChild(t);

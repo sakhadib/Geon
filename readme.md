@@ -230,7 +230,7 @@ label AB "Hypotenuse" color red size 14
 | segment | Midpoint of the segment |
 | polygon | Centroid of the polygon |
 
-Multiple labels on the same target are both rendered (stacked).
+Multiple labels on the same target are both rendered. When labels would overlap, Geon repositions later labels to nearby free space.
 
 ---
 
@@ -377,7 +377,7 @@ All errors stop execution immediately and include a line number.
 | Self-intersecting polygon | ✅ Allowed — SVG handles rendering |
 | Coordinates outside grid bounds | ✅ Allowed — SVG clips naturally |
 | Extra whitespace between tokens | ✅ Allowed |
-| Multiple labels on the same target | ✅ Allowed — both rendered (stacked) |
+| Multiple labels on the same target | ✅ Allowed — both rendered, with automatic overlap avoidance |
 | Invalid CSS color name in `stroke` | ✅ Allowed — SVG silently falls back |
 
 ---
