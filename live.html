@@ -63,8 +63,8 @@ polygon T points A B (1,2) fill rgba(255,0,0,0.2)
 point P C.center + (1,0)
 
 label A "Origin"
-label C "Circle"
-label T "Triangle"
+label C "Circle" color blue size 20
+label T "Triangle" size 12 color white
     </textarea>
   </div>
 
@@ -98,7 +98,7 @@ label T "Triangle"
 <script>
   // --- Geon syntax mode ---
   CodeMirror.defineMode("geon", function () {
-    const keywords = /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|x|y|step)\b/;
+    const keywords = /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|color|size|x|y|step)\b/;
 
     return {
       token: function (stream) {

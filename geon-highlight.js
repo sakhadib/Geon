@@ -10,7 +10,7 @@
 
     // Keywords
     code = code.replace(
-      /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|x|y|step)\b/g,
+      /\b(scene|grid|point|segment|circle|polygon|label|from|to|center|r|points|stroke|fill|width|color|size|x|y|step)\b/g,
       '<span class="g-keyword">$1</span>'
     );
 
