@@ -14,7 +14,10 @@
     let i = 0;
     while (i < line.length) {
       // Skip whitespace
-      if (/\s/.test(line[i])) { i++; continue; }
+      if (/\s/.test(line[i])) {
+        i++;
+        continue;
+      }
 
       // Quoted string
       if (line[i] === '"') {
@@ -27,9 +30,9 @@
       }
 
       // Coordinate / vector tuple  (x,y)
-      if (line[i] === '(') {
+      if (line[i] === "(") {
         let j = i + 1;
-        while (j < line.length && line[j] !== ')') j++;
+        while (j < line.length && line[j] !== ")") j++;
         if (j >= line.length) throw new Error("Unterminated parenthesis");
         const inner = line.slice(i + 1, j).trim();
         tokens.push({ type: "TUPLE", raw: inner });
@@ -38,7 +41,7 @@
       }
 
       // Plus sign
-      if (line[i] === '+') {
+      if (line[i] === "+") {
         tokens.push({ type: "PLUS" });
         i++;
         continue;
@@ -56,12 +59,25 @@
 
   function parseTuple(raw, lineNo) {
     const parts = raw.split(",");
-    if (parts.length !== 2) throw new GeonError(`Malformed coordinate at line ${lineNo}: (${raw})`, lineNo);
+    if (parts.length !== 2)
+      throw new GeonError(
+        `Malformed coordinate at line ${lineNo}: (${raw})`,
+        lineNo,
+      );
     const x = parts[0].trim();
     const y = parts[1].trim();
-    if (x === "" || y === "") throw new GeonError(`Malformed coordinate at line ${lineNo}: (${raw})`, lineNo);
-    const nx = Number(x), ny = Number(y);
-    if (isNaN(nx) || isNaN(ny)) throw new GeonError(`Non-numeric coordinate at line ${lineNo}: (${raw})`, lineNo);
+    if (x === "" || y === "")
+      throw new GeonError(
+        `Malformed coordinate at line ${lineNo}: (${raw})`,
+        lineNo,
+      );
+    const nx = Number(x),
+      ny = Number(y);
+    if (isNaN(nx) || isNaN(ny))
+      throw new GeonError(
+        `Non-numeric coordinate at line ${lineNo}: (${raw})`,
+        lineNo,
+      );
     return [nx, ny];
   }
 
@@ -75,7 +91,9 @@
   }
   GeonError.prototype = Object.create(Error.prototype);
 
-  function fail(msg, lineNo) { throw new GeonError(msg, lineNo); }
+  function fail(msg, lineNo) {
+    throw new GeonError(msg, lineNo);
+  }
 
   // ---------------------------------------------------------------------------
   // PARSER — converts tokens into AST nodes
@@ -98,14 +116,18 @@
       const val = tok.value;
       if (val.includes(".")) {
         const parts = val.split(".");
-        if (parts.length !== 2) fail(`Invalid anchor expression: ${val}`, lineNo);
+        if (parts.length !== 2)
+          fail(`Invalid anchor expression: ${val}`, lineNo);
         base = { kind: "shapeAnchor", id: parts[0], prop: parts[1] };
       } else {
         base = { kind: "ref", id: val };
       }
       idx++;
     } else {
-      fail(`Unexpected token in anchor expression: ${JSON.stringify(tok)}`, lineNo);
+      fail(
+        `Unexpected token in anchor expression: ${JSON.stringify(tok)}`,
+        lineNo,
+      );
     }
 
     // Check for vector addition
@@ -126,7 +148,10 @@
     const style = { stroke: "black", fill: "none", width: 2 };
     while (idx < tokens.length) {
       const tok = tokens[idx];
-      if (tok.type !== "WORD") { idx++; continue; }
+      if (tok.type !== "WORD") {
+        idx++;
+        continue;
+      }
       if (tok.value === "stroke" && idx + 1 < tokens.length) {
         style.stroke = tokens[idx + 1].value || tokens[idx + 1].raw || "black";
         idx += 2;
@@ -157,7 +182,12 @@
         const dim = tokens[1].value;
         const match = /^(\d+)x(\d+)$/.exec(dim);
         if (!match) fail(`Invalid scene dimensions: ${dim}`, lineNo);
-        return { kind: "scene", width: Number(match[1]), height: Number(match[2]), lineNo };
+        return {
+          kind: "scene",
+          width: Number(match[1]),
+          height: Number(match[2]),
+          lineNo,
+        };
       }
 
       // ---- grid ----
@@ -168,11 +198,18 @@
         if (tokens.length < 13) fail("Malformed grid declaration", lineNo);
         const xmin = Number(tokens[2].value);
         const xmax = Number(tokens[4].value);
-        const dx   = Number(tokens[6].value);
+        const dx = Number(tokens[6].value);
         const ymin = Number(tokens[8].value);
         const ymax = Number(tokens[10].value);
-        const dy   = Number(tokens[12].value);
-        if (isNaN(xmin)||isNaN(xmax)||isNaN(dx)||isNaN(ymin)||isNaN(ymax)||isNaN(dy))
+        const dy = Number(tokens[12].value);
+        if (
+          isNaN(xmin) ||
+          isNaN(xmax) ||
+          isNaN(dx) ||
+          isNaN(ymin) ||
+          isNaN(ymax) ||
+          isNaN(dy)
+        )
           fail("Non-numeric grid value", lineNo);
         if (dx <= 0) fail("Grid step must be > 0", lineNo);
         if (dy <= 0) fail("Grid step must be > 0", lineNo);
@@ -197,14 +234,22 @@
         if (tokens.length < 6) fail("Malformed segment", lineNo);
         const id = tokens[1].value;
         if (!isValidId(id)) fail(`Invalid identifier: ${id}`, lineNo);
-        if (tokens[2].value !== "from") fail("Expected 'from' in segment", lineNo);
+        if (tokens[2].value !== "from")
+          fail("Expected 'from' in segment", lineNo);
         const fromResult = parseAnchorExpr(tokens, 3, lineNo);
         const toIdx = fromResult.nextIdx;
         if (toIdx >= tokens.length || tokens[toIdx].value !== "to")
           fail("Expected 'to' in segment", lineNo);
         const toResult = parseAnchorExpr(tokens, toIdx + 1, lineNo);
         const style = parseStyle(tokens, toResult.nextIdx);
-        return { kind: "segment", id, from: fromResult.expr, to: toResult.expr, style, lineNo };
+        return {
+          kind: "segment",
+          id,
+          from: fromResult.expr,
+          to: toResult.expr,
+          style,
+          lineNo,
+        };
       }
 
       // ---- circle ----
@@ -213,7 +258,8 @@
         if (tokens.length < 5) fail("Malformed circle", lineNo);
         const id = tokens[1].value;
         if (!isValidId(id)) fail(`Invalid identifier: ${id}`, lineNo);
-        if (tokens[2].value !== "center") fail("Expected 'center' in circle", lineNo);
+        if (tokens[2].value !== "center")
+          fail("Expected 'center' in circle", lineNo);
         const centerResult = parseAnchorExpr(tokens, 3, lineNo);
         const rIdx = centerResult.nextIdx;
         if (rIdx >= tokens.length || tokens[rIdx].value !== "r")
@@ -223,7 +269,14 @@
         if (isNaN(radius)) fail("Radius must be a number", lineNo);
         if (radius < 0) fail("Radius must be >= 0", lineNo);
         const style = parseStyle(tokens, rIdx + 2);
-        return { kind: "circle", id, center: centerResult.expr, radius, style, lineNo };
+        return {
+          kind: "circle",
+          id,
+          center: centerResult.expr,
+          radius,
+          style,
+          lineNo,
+        };
       }
 
       // ---- polygon ----
@@ -232,13 +285,18 @@
         if (tokens.length < 5) fail("Malformed polygon", lineNo);
         const id = tokens[1].value;
         if (!isValidId(id)) fail(`Invalid identifier: ${id}`, lineNo);
-        if (tokens[2].value !== "points") fail("Expected 'points' in polygon", lineNo);
+        if (tokens[2].value !== "points")
+          fail("Expected 'points' in polygon", lineNo);
         const points = [];
         let idx = 3;
         while (idx < tokens.length) {
           const t = tokens[idx];
           // style keywords break the point list
-          if (t.type === "WORD" && (t.value === "stroke" || t.value === "fill" || t.value === "width")) break;
+          if (
+            t.type === "WORD" &&
+            (t.value === "stroke" || t.value === "fill" || t.value === "width")
+          )
+            break;
           const result = parseAnchorExpr(tokens, idx, lineNo);
           points.push(result.expr);
           idx = result.nextIdx;
@@ -253,13 +311,18 @@
         // label <target> "<text>"
         if (tokens.length < 3) fail("Malformed label", lineNo);
         const target = tokens[1].value;
-        if (tokens[2].type !== "STRING") fail("Expected quoted string in label", lineNo);
+        if (tokens[2].type !== "STRING")
+          fail("Expected quoted string in label", lineNo);
         return { kind: "label", target, text: tokens[2].value, lineNo };
       }
 
       default:
         // Unknown keyword — check case sensitivity
-        if (/^[A-Z]/.test(kw.value)) fail(`Unknown keyword '${kw.value}' — keywords are lowercase`, lineNo);
+        if (/^[A-Z]/.test(kw.value))
+          fail(
+            `Unknown keyword '${kw.value}' — keywords are lowercase`,
+            lineNo,
+          );
         fail(`Unknown keyword: ${kw.value}`, lineNo);
     }
   }
@@ -292,7 +355,8 @@
 
   function resolve(ast) {
     // Validate top-level structure
-    let sceneNode = null, gridNode = null;
+    let sceneNode = null,
+      gridNode = null;
     for (const node of ast) {
       if (node.kind === "scene") {
         if (sceneNode) fail("Duplicate scene declaration", node.lineNo);
@@ -303,7 +367,8 @@
       }
     }
     if (!sceneNode) fail("Missing scene declaration — 'scene WxH' is required");
-    if (!gridNode) fail("Missing grid declaration — 'grid x ... y ...' is required");
+    if (!gridNode)
+      fail("Missing grid declaration — 'grid x ... y ...' is required");
 
     // Symbol table: id → resolved entry
     const symbols = {};
@@ -316,7 +381,8 @@
       if (node.kind === "scene" || node.kind === "grid") continue;
 
       if (node.kind === "point") {
-        if (symbols[node.id]) fail(`Duplicate identifier '${node.id}'`, node.lineNo);
+        if (symbols[node.id])
+          fail(`Duplicate identifier '${node.id}'`, node.lineNo);
         // Detect self-reference before resolving
         checkSelfRef(node.id, node.anchor, node.lineNo);
         const coords = resolveAnchor(node.anchor, symbols, node.lineNo);
@@ -325,48 +391,57 @@
       }
 
       if (node.kind === "segment") {
-        if (symbols[node.id]) fail(`Duplicate identifier '${node.id}'`, node.lineNo);
+        if (symbols[node.id])
+          fail(`Duplicate identifier '${node.id}'`, node.lineNo);
         const from = resolveAnchor(node.from, symbols, node.lineNo);
-        const to   = resolveAnchor(node.to,   symbols, node.lineNo);
+        const to = resolveAnchor(node.to, symbols, node.lineNo);
         symbols[node.id] = {
           kind: "segment",
-          from, to,
+          from,
+          to,
           style: node.style,
           anchors: {
             from,
             to,
-            mid: [(from[0]+to[0])/2, (from[1]+to[1])/2]
+            mid: [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2],
           },
-          lineNo: node.lineNo
+          lineNo: node.lineNo,
         };
         continue;
       }
 
       if (node.kind === "circle") {
-        if (symbols[node.id]) fail(`Duplicate identifier '${node.id}'`, node.lineNo);
+        if (symbols[node.id])
+          fail(`Duplicate identifier '${node.id}'`, node.lineNo);
         const center = resolveAnchor(node.center, symbols, node.lineNo);
         symbols[node.id] = {
           kind: "circle",
-          center, radius: node.radius,
+          center,
+          radius: node.radius,
           style: node.style,
           anchors: { center },
-          lineNo: node.lineNo
+          lineNo: node.lineNo,
         };
         continue;
       }
 
       if (node.kind === "polygon") {
-        if (symbols[node.id]) fail(`Duplicate identifier '${node.id}'`, node.lineNo);
-        const pts = node.points.map(p => resolveAnchor(p, symbols, node.lineNo));
+        if (symbols[node.id])
+          fail(`Duplicate identifier '${node.id}'`, node.lineNo);
+        const pts = node.points.map((p) =>
+          resolveAnchor(p, symbols, node.lineNo),
+        );
         // Build named anchors p1, p2, ...
         const anchors = { centroid: centroid(pts) };
-        pts.forEach((p, i) => { anchors[`p${i+1}`] = p; });
+        pts.forEach((p, i) => {
+          anchors[`p${i + 1}`] = p;
+        });
         symbols[node.id] = {
           kind: "polygon",
           points: pts,
           style: node.style,
           anchors,
-          lineNo: node.lineNo
+          lineNo: node.lineNo,
         };
         continue;
       }
@@ -379,23 +454,26 @@
 
     // Validate labels
     for (const lbl of labels) {
-      if (!symbols[lbl.target]) fail(`Undefined label target '${lbl.target}'`, lbl.lineNo);
+      if (!symbols[lbl.target])
+        fail(`Undefined label target '${lbl.target}'`, lbl.lineNo);
     }
 
     return {
       scene: sceneNode,
       grid: gridNode,
-      statements: ast.filter(n => n.kind !== "scene" && n.kind !== "grid"),
+      statements: ast.filter((n) => n.kind !== "scene" && n.kind !== "grid"),
       symbols,
-      labels
+      labels,
     };
   }
 
   function checkSelfRef(id, expr, lineNo) {
     function walk(e) {
       if (!e) return;
-      if (e.kind === "ref" && e.id === id) fail(`Circular reference: '${id}' references itself`, lineNo);
-      if (e.kind === "shapeAnchor" && e.id === id) fail(`Circular reference: '${id}' references itself`, lineNo);
+      if (e.kind === "ref" && e.id === id)
+        fail(`Circular reference: '${id}' references itself`, lineNo);
+      if (e.kind === "shapeAnchor" && e.id === id)
+        fail(`Circular reference: '${id}' references itself`, lineNo);
       if (e.kind === "add") walk(e.base);
     }
     walk(expr);
@@ -447,15 +525,18 @@
 
   function render(resolved) {
     const { scene, grid, statements, symbols, labels } = resolved;
-    const W = scene.width, H = scene.height;
+    const W = scene.width,
+      H = scene.height;
 
     // Coordinate mapping: logical → SVG pixels
     const xRange = grid.xmax - grid.xmin;
     const yRange = grid.ymax - grid.ymin;
-    const toSvgX = lx => ((lx - grid.xmin) / xRange) * W;
-    const toSvgY = ly => H - ((ly - grid.ymin) / yRange) * H; // Y-flip
+    const toSvgX = (lx) => ((lx - grid.xmin) / xRange) * W;
+    const toSvgY = (ly) => H - ((ly - grid.ymin) / yRange) * H; // Y-flip
 
-    function pt(lx, ly) { return [toSvgX(lx), toSvgY(ly)]; }
+    function pt(lx, ly) {
+      return [toSvgX(lx), toSvgY(ly)];
+    }
 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
@@ -472,49 +553,68 @@
     }
 
     // ---- Grid ----
-    const gridG = el("g", { "class": "geon-grid" });
+    const gridG = el("g", { class: "geon-grid" });
 
     // Vertical lines
     for (let lx = grid.xmin; lx <= grid.xmax + 1e-9; lx += grid.dx) {
       const [sx] = pt(lx, 0);
       const isAxis = Math.abs(lx) < 1e-9;
-      gridG.appendChild(el("line", {
-        x1: sx, y1: 0, x2: sx, y2: H,
-        stroke: isAxis ? "#555" : "#ddd",
-        "stroke-width": isAxis ? 1.5 : 0.5
-      }));
+      gridG.appendChild(
+        el("line", {
+          x1: sx,
+          y1: 0,
+          x2: sx,
+          y2: H,
+          stroke: isAxis ? "#555" : "#ddd",
+          "stroke-width": isAxis ? 1.5 : 0.5,
+        }),
+      );
     }
 
     // Horizontal lines
     for (let ly = grid.ymin; ly <= grid.ymax + 1e-9; ly += grid.dy) {
       const [, sy] = pt(0, ly);
       const isAxis = Math.abs(ly) < 1e-9;
-      gridG.appendChild(el("line", {
-        x1: 0, y1: sy, x2: W, y2: sy,
-        stroke: isAxis ? "#555" : "#ddd",
-        "stroke-width": isAxis ? 1.5 : 0.5
-      }));
+      gridG.appendChild(
+        el("line", {
+          x1: 0,
+          y1: sy,
+          x2: W,
+          y2: sy,
+          stroke: isAxis ? "#555" : "#ddd",
+          "stroke-width": isAxis ? 1.5 : 0.5,
+        }),
+      );
     }
 
     // Axis tick labels
-    const tickG = el("g", { "class": "geon-ticks", "font-size": "9", fill: "#888", "font-family": "monospace" });
+    const tickG = el("g", {
+      class: "geon-ticks",
+      "font-size": "9",
+      fill: "#888",
+      "font-family": "monospace",
+    });
     const [ox, oy] = pt(0, 0);
     for (let lx = grid.xmin; lx <= grid.xmax + 1e-9; lx += grid.dx) {
       if (Math.abs(lx) < 1e-9) continue;
       const [sx] = pt(lx, 0);
-      tickG.appendChild(el("text", { x: sx, y: oy + 12, "text-anchor": "middle" })).textContent = lx;
+      tickG.appendChild(
+        el("text", { x: sx, y: oy + 12, "text-anchor": "middle" }),
+      ).textContent = lx;
     }
     for (let ly = grid.ymin; ly <= grid.ymax + 1e-9; ly += grid.dy) {
       if (Math.abs(ly) < 1e-9) continue;
       const [, sy] = pt(0, ly);
-      tickG.appendChild(el("text", { x: ox - 4, y: sy + 3, "text-anchor": "end" })).textContent = ly;
+      tickG.appendChild(
+        el("text", { x: ox - 4, y: sy + 3, "text-anchor": "end" }),
+      ).textContent = ly;
     }
 
     svg.appendChild(gridG);
     svg.appendChild(tickG);
 
     // ---- Shapes (in declaration order) ----
-    const shapesG = el("g", { "class": "geon-shapes" });
+    const shapesG = el("g", { class: "geon-shapes" });
 
     for (const node of statements) {
       if (node.kind === "label") continue;
@@ -523,43 +623,57 @@
 
       if (sym.kind === "point") {
         const [sx, sy] = pt(...sym.coords);
-        shapesG.appendChild(el("circle", { cx: sx, cy: sy, r: 3, fill: "black" }));
+        shapesG.appendChild(
+          el("circle", { cx: sx, cy: sy, r: 3, fill: "black" }),
+        );
         continue;
       }
 
       if (sym.kind === "segment") {
         const [x1, y1] = pt(...sym.from);
         const [x2, y2] = pt(...sym.to);
-        shapesG.appendChild(el("line", {
-          x1, y1, x2, y2,
-          stroke: sym.style.stroke,
-          "stroke-width": sym.style.width,
-          fill: "none"
-        }));
+        shapesG.appendChild(
+          el("line", {
+            x1,
+            y1,
+            x2,
+            y2,
+            stroke: sym.style.stroke,
+            "stroke-width": sym.style.width,
+            fill: "none",
+          }),
+        );
         continue;
       }
 
       if (sym.kind === "circle") {
         const [cx, cy] = pt(...sym.center);
-        // Radius in SVG pixels (use x-scale)
-        const rSvg = (sym.radius / xRange) * W;
-        shapesG.appendChild(el("circle", {
-          cx, cy, r: rSvg,
-          stroke: sym.style.stroke,
-          "stroke-width": sym.style.width,
-          fill: sym.style.fill
-        }));
+        const rx = (sym.radius / xRange) * W;
+        const ry = (sym.radius / yRange) * H;
+        shapesG.appendChild(
+          el("ellipse", {
+            cx,
+            cy,
+            rx,
+            ry,
+            stroke: sym.style.stroke,
+            "stroke-width": sym.style.width,
+            fill: sym.style.fill,
+          }),
+        );
         continue;
       }
 
       if (sym.kind === "polygon") {
-        const ptStr = sym.points.map(p => pt(...p).join(",")).join(" ");
-        shapesG.appendChild(el("polygon", {
-          points: ptStr,
-          stroke: sym.style.stroke,
-          "stroke-width": sym.style.width,
-          fill: sym.style.fill
-        }));
+        const ptStr = sym.points.map((p) => pt(...p).join(",")).join(" ");
+        shapesG.appendChild(
+          el("polygon", {
+            points: ptStr,
+            stroke: sym.style.stroke,
+            "stroke-width": sym.style.width,
+            fill: sym.style.fill,
+          }),
+        );
         continue;
       }
     }
@@ -567,7 +681,12 @@
     svg.appendChild(shapesG);
 
     // ---- Labels (on top) ----
-    const labelsG = el("g", { "class": "geon-labels", "font-size": "12", "font-family": "sans-serif", "text-anchor": "middle" });
+    const labelsG = el("g", {
+      class: "geon-labels",
+      "font-size": "12",
+      "font-family": "sans-serif",
+      "text-anchor": "middle",
+    });
 
     for (const lbl of labels) {
       const sym = symbols[lbl.target];
@@ -595,17 +714,19 @@
 
   const Geon = {
     render(source, container) {
-      if (!container) throw new Error("Geon.render: container element is required");
+      if (!container)
+        throw new Error("Geon.render: container element is required");
       let ast, resolved, svgEl;
       try {
         ast = parse(source);
         resolved = resolve(ast);
         svgEl = render(resolved);
       } catch (e) {
-        const msg = e instanceof GeonError ? e.message : (e.message || String(e));
+        const msg = e instanceof GeonError ? e.message : e.message || String(e);
         container.innerHTML = "";
         const errDiv = document.createElement("div");
-        errDiv.style.cssText = "color:#c00;font-family:monospace;white-space:pre-wrap;padding:8px;background:#fff0f0;border:1px solid #faa;border-radius:4px";
+        errDiv.style.cssText =
+          "color:#c00;font-family:monospace;white-space:pre-wrap;padding:8px;background:#fff0f0;border:1px solid #faa;border-radius:4px";
         errDiv.textContent = "Geon Error:\n" + msg;
         container.appendChild(errDiv);
         return { success: false, error: msg };
@@ -613,9 +734,8 @@
       container.innerHTML = "";
       container.appendChild(svgEl);
       return { success: true };
-    }
+    },
   };
 
   global.Geon = Geon;
-
 })(typeof window !== "undefined" ? window : global);
