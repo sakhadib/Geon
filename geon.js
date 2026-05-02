@@ -541,10 +541,10 @@
 
       if (sym.kind === "circle") {
         const [cx, cy] = pt(...sym.center);
-        // Radius in SVG pixels (use x-scale)
-        const rSvg = (sym.radius / xRange) * W;
-        shapesG.appendChild(el("circle", {
-          cx, cy, r: rSvg,
+        const rx = (sym.radius / xRange) * W;
+        const ry = (sym.radius / yRange) * H;
+        shapesG.appendChild(el("ellipse", {
+          cx, cy, rx, ry,
           stroke: sym.style.stroke,
           "stroke-width": sym.style.width,
           fill: sym.style.fill
