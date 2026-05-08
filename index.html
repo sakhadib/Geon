@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Geon v0.1 — Documentation</title>
+<title>Geon v2.0 — Documentation</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -159,6 +159,34 @@ tailwind.config = {
     to   { opacity: 1; transform: translateY(0); }
   }
   .main-content { animation: fadeUp 0.4s ease both; }
+
+  /* Live Geon previews */
+  .geon-live {
+    border: 1px solid #ddd8ce;
+    border-radius: 6px;
+    background: #fffaf2;
+    overflow: hidden;
+  }
+  .geon-live-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ede9e1;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: #6b6457;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .geon-live-canvas {
+    min-height: 260px;
+    background: white;
+  }
+  .geon-live-canvas svg {
+    width: 100%;
+    height: auto;
+  }
 </style>
 </head>
 <body>
@@ -168,7 +196,7 @@ tailwind.config = {
   <div class="max-w-screen-xl mx-auto flex items-center justify-between px-6 py-3">
     <div class="flex items-center gap-3">
       <span style="font-family:'Playfair Display',serif; color:#f5f2ec; font-size:1.3rem; font-weight:900; letter-spacing:-0.02em;">Geon</span>
-      <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:#6b6457; background:#1a1714; padding:2px 8px; border-radius:10px; border:1px solid #2a2420;">v0.1</span>
+      <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:#6b6457; background:#1a1714; padding:2px 8px; border-radius:10px; border:1px solid #2a2420;">v2.0</span>
     </div>
     <nav class="hidden md:flex items-center gap-6">
       <a href="#quickstart" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">Quickstart</a>
@@ -176,10 +204,9 @@ tailwind.config = {
       <a href="#anchors" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">Anchors</a>
       <a href="#errors" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">Errors</a>
       <a href="#edge-cases" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">Edge Cases</a>
-      <a href="./live.html" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">🚀 Live Demo</a>
-    </svg>
+      <a href="./live.html" class="text-xs font-mono text-gray-400 hover:text-white transition-colors">Live Demo</a>
     </nav>
-    <a href="https://github.com/sakhadib/Geon/releases/download/v0.1/geon.js" style="font-family:'DM Mono',monospace; font-size:0.72rem; color:#c8491a; text-decoration:none; border:1px solid #c8491a; padding:4px 12px; border-radius:4px;">geon.js ↓</a>
+    <a href="./geon.js" style="font-family:'DM Mono',monospace; font-size:0.72rem; color:#c8491a; text-decoration:none; border:1px solid #c8491a; padding:4px 12px; border-radius:4px;">geon.js</a>
   </div>
 </header>
 
@@ -196,10 +223,13 @@ tailwind.config = {
     <a href="#syntax" class="nav-link">Program Structure</a>
     <a href="#scene" class="nav-link">Scene</a>
     <a href="#grid" class="nav-link">Grid</a>
+    <a href="#expressions" class="nav-link">Expressions</a>
     <a href="#point" class="nav-link">Point</a>
     <a href="#segment" class="nav-link">Segment</a>
     <a href="#circle" class="nav-link">Circle</a>
     <a href="#polygon" class="nav-link">Polygon</a>
+    <a href="#new-primitives" class="nav-link">v2 Primitives</a>
+    <a href="#plot-intersect" class="nav-link">Plot & Intersect</a>
 
     <div class="nav-section">Concepts</div>
     <a href="#anchors" class="nav-link">Anchor Expressions</a>
@@ -225,17 +255,19 @@ tailwind.config = {
         Geon<br/><span style="color:#6b6457; font-size:2rem; font-weight:700;">DSL Reference</span>
       </h1>
       <p class="text-lg leading-relaxed mb-6" style="color:#3a3530; max-width:560px;">
-        A zero-dependency JavaScript library that renders <strong>static 2D geometric scenes</strong> from a concise, natural-language-like DSL into SVG — directly in the browser.
+        A zero-dependency JavaScript library that renders <strong>static 2D mathematical graphics</strong> from a concise, natural-language-like DSL into SVG — directly in the browser.
       </p>
       <div class="flex flex-wrap gap-3 mb-8">
         <span class="badge-ok">No dependencies</span>
         <span class="badge-ok">Single file</span>
         <span class="badge-ok">SVG output</span>
-        <span class="badge-ok">Browser native</span>
+        <span class="badge-ok">Expressions</span>
+        <span class="badge-ok">Function plots</span>
+        <span class="badge-ok">Intersections</span>
       </div>
 
       <div class="callout-note mb-2">
-        <p class="text-sm leading-relaxed"><strong>Design philosophy:</strong> Geon is deliberately minimal. No curly braces, no semicolons, no heavy punctuation. Line-based declarations, lowercase keywords, and order-sensitive evaluation keep programs readable and predictable.</p>
+        <p class="text-sm leading-relaxed"><strong>Design philosophy:</strong> Geon is deliberately minimal. Line-based declarations, lowercase keywords, and order-sensitive evaluation keep programs readable and predictable, while v2 adds variables, expressions, plots, reusable styles, and more geometric primitives.</p>
       </div>
     </section>
 
@@ -255,16 +287,46 @@ tailwind.config = {
 <span class="cm">&lt;!-- 3. Render a scene --&gt;</span>
 <span class="kw">&lt;script&gt;</span>
 Geon.<span class="id">render</span>(`
-  <span class="kw">scene</span> <span class="num">600x400</span>
+  <span class="kw">scene</span> <span class="num">600x600</span>
   <span class="kw">grid</span> x <span class="op">-5</span> to <span class="num">5</span> step <span class="num">1</span> y <span class="op">-5</span> to <span class="num">5</span> step <span class="num">1</span>
 
-  <span class="kw">point</span> <span class="id">A</span> (<span class="num">0</span>,<span class="num">0</span>)
-  <span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="num">2</span> stroke blue
+  <span class="kw">let</span> <span class="id">r</span> = <span class="num">2</span>
 
-  <span class="kw">label</span> <span class="id">A</span> <span class="str">"Origin"</span>
-  <span class="kw">label</span> <span class="id">C</span> <span class="str">"Circle C"</span>
+  <span class="kw">point</span> <span class="id">A</span> (<span class="num">0</span>,<span class="num">0</span>)
+  <span class="kw">point</span> <span class="id">B</span> polar (<span class="id">r</span>,<span class="num">30</span>)
+
+  <span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="id">r</span> stroke blue fill lightblue opacity <span class="num">0.35</span>
+  <span class="kw">segment</span> <span class="id">AB</span> from <span class="id">A</span> to <span class="id">B</span> stroke black width <span class="num">2</span> arrow end
+  <span class="kw">plot</span> <span class="id">S</span> y=x^<span class="num">2</span>-<span class="num">2</span> from <span class="op">-3</span> to <span class="num">3</span> stroke crimson width <span class="num">2</span>
+
+  <span class="kw">label</span> <span class="id">A</span> <span class="str">"Origin"</span> position southwest
+  <span class="kw">label</span> <span class="id">C</span> <span class="str">"Circle C"</span> color blue
+  <span class="kw">label</span> <span class="id">S</span> <span class="str">"Parabola"</span> color crimson
 `, document.<span class="id">getElementById</span>(<span class="str">"canvas"</span>));
 <span class="kw">&lt;/script&gt;</span></pre>
+
+      <div class="geon-live mt-6">
+        <div class="geon-live-header">
+          <span>Rendered by local geon.js</span>
+          <span>Quickstart</span>
+        </div>
+        <div id="quickstart-preview" class="geon-live-canvas"></div>
+      </div>
+      <script type="text/plain" id="quickstart-source">scene 600x600
+grid x -5 to 5 step 1 y -5 to 5 step 1
+
+let r = 2
+
+point A (0,0)
+point B polar (r,30)
+
+circle C center A r r stroke blue fill lightblue opacity 0.35
+segment AB from A to B stroke black width 2 arrow end
+plot S y=x^2-2 from -3 to 3 stroke crimson width 2
+
+label A "Origin" position southwest
+label C "Circle C" color blue
+label S "Parabola" color crimson</script>
     </section>
 
     <!-- Installation -->
@@ -283,9 +345,11 @@ Geon.<span class="id">render</span>(`
     <!-- Program Structure -->
     <section id="syntax" class="section-anchor mb-14">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Program Structure</h2>
-      <p class="text-sm leading-relaxed text-muted mb-5">Every Geon program follows this grammar. Both <code>scene</code> and <code>grid</code> are mandatory and must appear before any statements.</p>
+      <p class="text-sm leading-relaxed text-muted mb-5">Every Geon program needs one <code>scene</code> and one <code>grid</code>. Identifiers are resolved top-to-bottom, so declare points and shapes before using them.</p>
       <pre><span class="id">Program</span>   ::= <span class="kw">SceneDecl</span> <span class="kw">GridDecl</span> <span class="id">Statement</span>*
-<span class="id">Statement</span> ::= <span class="kw">Point</span> | <span class="kw">Segment</span> | <span class="kw">Circle</span> | <span class="kw">Polygon</span> | <span class="kw">Label</span></pre>
+<span class="id">Statement</span> ::= <span class="kw">Let</span> | <span class="kw">Style</span> | <span class="kw">Point</span> | <span class="kw">Midpoint</span> | <span class="kw">Segment</span> | <span class="kw">Circle</span>
+            | <span class="kw">Ellipse</span> | <span class="kw">Rect</span> | <span class="kw">Arc</span> | <span class="kw">Polygon</span> | <span class="kw">Line</span> | <span class="kw">Ray</span>
+            | <span class="kw">Bezier</span> | <span class="kw">Plot</span> | <span class="kw">Intersect</span> | <span class="kw">Label</span> | <span class="kw">Layer</span></pre>
 
       <div class="callout-error mt-5 text-sm">
         <strong>Strict order:</strong> Geon does not support forward references. Every identifier must be declared before it is used. Statements are evaluated top-to-bottom, exactly as written.
@@ -335,18 +399,54 @@ Geon.<span class="id">render</span>(`
       </div>
     </section>
 
+    <!-- Expressions -->
+    <section id="expressions" class="section-anchor mb-14">
+      <h2 class="rule-accent text-2xl font-display font-bold mb-4">Expressions & Variables</h2>
+      <p class="text-sm leading-relaxed text-muted mb-4">Geon v2 supports numeric expressions in coordinates, polar tuples, radii, dimensions, plot formulas, and <code>let</code> declarations. Function calls such as <code>sin(30)</code> are safest inside tuple expressions; scalar fields and plot formulas should be compact single-token expressions such as <code>r*0.5</code> or <code>x^2-2</code>.</p>
+      <pre><span class="kw">let</span> <span class="id">&lt;name&gt;</span> = <span class="id">&lt;expression&gt;</span></pre>
+
+      <div class="mt-4 mb-2 text-xs font-mono text-muted uppercase tracking-widest">Examples</div>
+      <pre><span class="kw">let</span> <span class="id">r</span> = <span class="num">2.5</span>
+<span class="kw">let</span> <span class="id">theta</span> = <span class="num">30</span>
+
+<span class="kw">point</span> <span class="id">A</span> (<span class="id">r</span>*cos(<span class="id">theta</span>), <span class="id">r</span>*sin(<span class="id">theta</span>))
+<span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="id">r</span>*<span class="num">0.5</span></pre>
+
+      <table class="mt-5 text-sm">
+        <thead><tr><th>Supported</th><th>Syntax</th></tr></thead>
+        <tbody>
+          <tr><td>Operators</td><td><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code></td></tr>
+          <tr><td>Constants</td><td><code>pi</code>, <code>tau</code>, <code>e</code></td></tr>
+          <tr><td>Degree trig</td><td><code>sin</code>, <code>cos</code>, <code>tan</code></td></tr>
+          <tr><td>Radian trig</td><td><code>sinr</code>, <code>cosr</code>, <code>tanr</code></td></tr>
+          <tr><td>Other functions</td><td><code>sqrt</code>, <code>abs</code>, <code>floor</code>, <code>ceil</code>, <code>round</code>, <code>log</code>, <code>exp</code>, <code>sign</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
     <!-- Point -->
     <section id="point" class="section-anchor mb-14">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Point</h2>
       <p class="text-sm leading-relaxed text-muted mb-4">Declares a named point. Points render as small filled circles and serve as anchors for other shapes.</p>
       <pre><span class="kw">point</span> <span class="id">&lt;id&gt;</span> (<span class="num">&lt;x&gt;</span>,<span class="num">&lt;y&gt;</span>)
-<span class="kw">point</span> <span class="id">&lt;id&gt;</span> <span class="id">&lt;AnchorExpr&gt;</span></pre>
+<span class="kw">point</span> <span class="id">&lt;id&gt;</span> <span class="id">&lt;AnchorExpr&gt;</span>
+<span class="kw">point</span> <span class="id">&lt;id&gt;</span> polar (<span class="num">&lt;r&gt;</span>,<span class="num">&lt;degrees&gt;</span>)</pre>
 
       <div class="mt-4 mb-2 text-xs font-mono text-muted uppercase tracking-widest">Examples</div>
       <pre><span class="kw">point</span> <span class="id">A</span> (<span class="num">0</span>,<span class="num">0</span>)                 <span class="cm"># Absolute coordinate</span>
 <span class="kw">point</span> <span class="id">B</span> <span class="id">A</span> <span class="op">+</span> (<span class="num">2</span>,<span class="num">1</span>)             <span class="cm"># Offset from another point</span>
 <span class="kw">point</span> <span class="id">P</span> <span class="id">C</span>.center <span class="op">+</span> (<span class="num">1</span>,<span class="num">0</span>)      <span class="cm"># Offset from circle center</span>
-<span class="kw">point</span> <span class="id">Q</span> <span class="id">T</span>.p2                   <span class="cm"># Second vertex of polygon T</span></pre>
+<span class="kw">point</span> <span class="id">Q</span> <span class="id">T</span>.p2                   <span class="cm"># Second vertex of polygon T</span>
+<span class="kw">point</span> <span class="id">R</span> polar (<span class="num">3</span>,<span class="num">45</span>)           <span class="cm"># Polar coordinate from origin</span></pre>
+    </section>
+
+    <!-- Midpoint -->
+    <section id="midpoint" class="section-anchor mb-14">
+      <h2 class="rule-accent text-2xl font-display font-bold mb-4">Midpoint</h2>
+      <p class="text-sm leading-relaxed text-muted mb-4">Creates a named point halfway between two existing point-like identifiers.</p>
+      <pre><span class="kw">midpoint</span> <span class="id">&lt;id&gt;</span> of <span class="id">&lt;pointA&gt;</span> <span class="id">&lt;pointB&gt;</span></pre>
+      <pre><span class="kw">midpoint</span> <span class="id">M</span> of <span class="id">A</span> <span class="id">B</span>
+<span class="kw">label</span> <span class="id">M</span> <span class="str">"midpoint"</span></pre>
     </section>
 
     <!-- Segment -->
@@ -365,6 +465,7 @@ Geon.<span class="id">render</span>(`
         <tbody>
           <tr><td><code>segId.from</code></td><td>Start point of the segment</td></tr>
           <tr><td><code>segId.to</code></td><td>End point of the segment</td></tr>
+          <tr><td><code>segId.mid</code></td><td>Midpoint of the segment</td></tr>
         </tbody>
       </table>
     </section>
@@ -372,12 +473,12 @@ Geon.<span class="id">render</span>(`
     <!-- Circle -->
     <section id="circle" class="section-anchor mb-14">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Circle</h2>
-      <p class="text-sm leading-relaxed text-muted mb-4">Draws a circle. The radius is specified in logical (grid) units. Renders as SVG <code>&lt;circle&gt;</code>.</p>
-      <pre><span class="kw">circle</span> <span class="id">&lt;id&gt;</span> center <span class="id">&lt;AnchorExpr&gt;</span> r <span class="num">&lt;number&gt;</span> [style]</pre>
+      <p class="text-sm leading-relaxed text-muted mb-4">Draws a circle. The radius is specified in logical (grid) units.</p>
+      <pre><span class="kw">circle</span> <span class="id">&lt;id&gt;</span> center <span class="id">&lt;AnchorExpr&gt;</span> r <span class="num">&lt;expression&gt;</span> [style]</pre>
 
       <div class="mt-4 mb-2 text-xs font-mono text-muted uppercase tracking-widest">Examples</div>
       <pre><span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="num">2</span>
-<span class="kw">circle</span> <span class="id">C</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">3</span> stroke blue fill rgba(<span class="num">0</span>,<span class="num">0</span>,<span class="num">255</span>,<span class="num">0.1</span>)
+<span class="kw">circle</span> <span class="id">C</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">3</span> stroke blue fill lightblue opacity <span class="num">0.35</span>
 <span class="kw">circle</span> <span class="id">D</span> center <span class="id">C</span>.center r <span class="num">0</span>  <span class="cm"># Renders as a dot</span></pre>
 
       <table class="mt-5 text-sm">
@@ -400,15 +501,59 @@ Geon.<span class="id">render</span>(`
 
       <div class="mt-4 mb-2 text-xs font-mono text-muted uppercase tracking-widest">Examples</div>
       <pre><span class="kw">polygon</span> <span class="id">T</span> points <span class="id">A</span> <span class="id">B</span> (<span class="num">1</span>,<span class="num">2</span>)
-<span class="kw">polygon</span> <span class="id">Q</span> points (<span class="op">-1</span>,<span class="op">-1</span>) (<span class="num">1</span>,<span class="op">-1</span>) (<span class="num">1</span>,<span class="num">1</span>) (<span class="op">-1</span>,<span class="num">1</span>) fill rgba(<span class="num">255</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0.2</span>)</pre>
+<span class="kw">polygon</span> <span class="id">Q</span> points (<span class="op">-1</span>,<span class="op">-1</span>) (<span class="num">1</span>,<span class="op">-1</span>) (<span class="num">1</span>,<span class="num">1</span>) (<span class="op">-1</span>,<span class="num">1</span>) fill pink opacity <span class="num">0.6</span></pre>
 
       <table class="mt-5 text-sm">
         <thead><tr><th>Anchor</th><th>Returns</th></tr></thead>
         <tbody>
           <tr><td><code>polyId.p1</code>, <code>p2</code>, <code>p3</code>, …</td><td>The Nth vertex (1-indexed)</td></tr>
-          <tr><td><code>polyId.centroid</code> <em>(label only)</em></td><td>Geometric center of the polygon</td></tr>
+          <tr><td><code>polyId.centroid</code></td><td>Geometric center of the polygon</td></tr>
         </tbody>
       </table>
+    </section>
+
+    <!-- v2 Primitives -->
+    <section id="new-primitives" class="section-anchor mb-14">
+      <h2 class="rule-accent text-2xl font-display font-bold mb-4">v2 Primitives</h2>
+      <p class="text-sm leading-relaxed text-muted mb-4">Geon v2 adds ellipses, rectangles, arcs, infinite lines, rays, and cubic Bezier curves. All accept the same inline style tokens as existing shapes.</p>
+
+      <pre><span class="kw">ellipse</span> <span class="id">E</span> center <span class="id">A</span> rx <span class="num">3</span> ry <span class="num">1.5</span> stroke purple
+<span class="kw">rect</span> <span class="id">R</span> at (<span class="op">-2</span>,<span class="num">2</span>) w <span class="num">4</span> h <span class="num">2</span> stroke black fill gainsboro opacity <span class="num">0.5</span>
+<span class="kw">arc</span> <span class="id">K</span> center <span class="id">A</span> r <span class="num">3</span> from <span class="num">20</span> to <span class="num">160</span> stroke orange width <span class="num">3</span>
+<span class="kw">line</span> <span class="id">L</span> through <span class="id">A</span> <span class="id">B</span> stroke gray dash <span class="num">4</span>,<span class="num">4</span>
+<span class="kw">ray</span> <span class="id">Y</span> from <span class="id">A</span> through (<span class="num">1</span>,<span class="num">1</span>) stroke red arrow end
+<span class="kw">bezier</span> <span class="id">BZ</span> from (<span class="op">-4</span>,<span class="op">-1</span>) control (<span class="op">-2</span>,<span class="num">3</span>) (<span class="num">2</span>,<span class="op">-3</span>) to (<span class="num">4</span>,<span class="num">1</span>) stroke green</pre>
+
+      <table class="mt-5 text-sm">
+        <thead><tr><th>Primitive</th><th>Syntax</th><th>Anchors</th></tr></thead>
+        <tbody>
+          <tr><td><code>ellipse</code></td><td><code>ellipse id center A rx x ry y</code></td><td><code>center</code></td></tr>
+          <tr><td><code>rect</code></td><td><code>rect id at A w x h y</code></td><td><code>topleft</code>, <code>topright</code>, <code>bottomleft</code>, <code>bottomright</code>, <code>center</code></td></tr>
+          <tr><td><code>arc</code></td><td><code>arc id center A r x from deg to deg</code></td><td><code>center</code></td></tr>
+          <tr><td><code>line</code></td><td><code>line id through A B</code></td><td><code>p1</code>, <code>p2</code>, <code>mid</code></td></tr>
+          <tr><td><code>ray</code></td><td><code>ray id from A through B</code></td><td><code>origin</code></td></tr>
+          <tr><td><code>bezier</code></td><td><code>bezier id from A control B C to D</code></td><td><code>from</code>, <code>to</code>, <code>mid</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Plot and Intersect -->
+    <section id="plot-intersect" class="section-anchor mb-14">
+      <h2 class="rule-accent text-2xl font-display font-bold mb-4">Plot & Intersect</h2>
+      <p class="text-sm leading-relaxed text-muted mb-4">Plots sample <code>y=&lt;expression&gt;</code> over an x-domain. Intersections create point symbols from supported shape pairs.</p>
+
+      <pre><span class="kw">plot</span> <span class="id">P</span> y=x^<span class="num">2</span> from <span class="op">-3</span> to <span class="num">3</span> stroke crimson width <span class="num">2</span>
+<span class="kw">plot</span> <span class="id">Q</span> y=x^<span class="num">3</span>-x from <span class="op">-3</span> to <span class="num">3</span> step <span class="num">0.05</span> stroke blue
+
+<span class="kw">line</span> <span class="id">L</span> through (<span class="op">-3</span>,<span class="num">0</span>) (<span class="num">3</span>,<span class="num">0</span>)
+<span class="kw">circle</span> <span class="id">C</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">2</span>
+<span class="kw">intersect</span> <span class="id">X</span> <span class="id">L</span> <span class="id">C</span>
+<span class="kw">label</span> <span class="id">X</span> <span class="str">"first"</span>
+<span class="kw">label</span> <span class="id">X_2</span> <span class="str">"second"</span></pre>
+
+      <div class="callout-note mt-5 text-sm">
+        If <code>step</code> is omitted, plots sample roughly 300 points. Intersections support line-family vs line-family, line-family vs circle, and circle vs circle; the second intersection, when present, is named <code>id_2</code>.
+      </div>
     </section>
 
     <hr class="border-border mb-12" />
@@ -430,8 +575,14 @@ Geon.<span class="id">render</span>(`
         <tbody>
           <tr><td>point</td><td><code>pointId</code></td><td>The point itself</td></tr>
           <tr><td>circle</td><td><code>circleId.center</code></td><td>Center of the circle</td></tr>
+          <tr><td>ellipse</td><td><code>ellipseId.center</code></td><td>Center of the ellipse</td></tr>
+          <tr><td>rect</td><td><code>rectId.topleft</code>, <code>topright</code>, <code>bottomleft</code>, <code>bottomright</code>, <code>center</code></td><td>Rectangle corners and center</td></tr>
+          <tr><td>arc</td><td><code>arcId.center</code></td><td>Center of the arc</td></tr>
           <tr><td>polygon</td><td><code>polyId.p1</code> … <code>polyId.pN</code></td><td>Nth vertex</td></tr>
-          <tr><td>segment</td><td><code>segId.from</code>, <code>segId.to</code></td><td>Endpoints</td></tr>
+          <tr><td>segment</td><td><code>segId.from</code>, <code>segId.to</code>, <code>segId.mid</code></td><td>Endpoints and midpoint</td></tr>
+          <tr><td>line</td><td><code>lineId.p1</code>, <code>lineId.p2</code>, <code>lineId.mid</code></td><td>Defining points and midpoint</td></tr>
+          <tr><td>ray</td><td><code>rayId.origin</code></td><td>Ray origin</td></tr>
+          <tr><td>bezier</td><td><code>bezierId.from</code>, <code>bezierId.to</code>, <code>bezierId.mid</code></td><td>Endpoints and endpoint midpoint</td></tr>
         </tbody>
       </table>
 
@@ -443,31 +594,44 @@ Geon.<span class="id">render</span>(`
 <span class="cm"># ✗ Cannot add two anchor refs together</span>
 <span class="kw">point</span> <span class="id">B</span> <span class="id">A</span> <span class="op">+</span> <span class="id">A</span>   <span class="err"># Error: expected (dx,dy)</span></pre>
 
-      <div class="callout-error mt-5 text-sm">
-        <strong>Circular dependencies are detected.</strong> An anchor chain that references itself — directly or transitively — is a hard error.
+      <div class="callout-note mt-5 text-sm">
+        Tuple coordinates and vector offsets may contain expressions, such as <code>(r*cos(30), r*sin(30))</code>.
       </div>
     </section>
 
     <!-- Styling -->
     <section id="styling" class="section-anchor mb-14">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Styling</h2>
-      <p class="text-sm leading-relaxed text-muted mb-4">Style tokens are appended inline after the shape declaration. All tokens are optional; unspecified properties use their defaults.</p>
+      <p class="text-sm leading-relaxed text-muted mb-4">Style tokens are appended inline after a shape or label declaration, or defined once in a named <code>style</code> block and applied with <code>use</code>.</p>
 
-      <pre><span class="kw">circle</span> <span class="id">C</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">2</span>  stroke blue  fill rgba(<span class="num">0</span>,<span class="num">100</span>,<span class="num">255</span>,<span class="num">0.15</span>)  width <span class="num">3</span>
-<span class="kw">segment</span> <span class="id">S</span> from <span class="id">A</span> to <span class="id">B</span>       stroke <span class="num">#e07b54</span>  width <span class="num">2</span>
-<span class="kw">polygon</span> <span class="id">T</span> points <span class="id">A</span> <span class="id">B</span> (<span class="num">1</span>,<span class="num">2</span>)  fill rgba(<span class="num">255</span>,<span class="num">0</span>,<span class="num">0</span>,<span class="num">0.2</span>)  stroke red</pre>
+      <pre><span class="kw">style</span> <span class="id">construction</span> {
+  stroke gray
+  width <span class="num">1</span>
+  dash <span class="num">4</span>,<span class="num">4</span>
+  opacity <span class="num">0.75</span>
+}
+
+<span class="kw">circle</span> <span class="id">C</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">2</span> stroke blue fill lightblue opacity <span class="num">0.35</span> width <span class="num">3</span>
+<span class="kw">segment</span> <span class="id">S</span> from <span class="id">A</span> to <span class="id">B</span> use <span class="id">construction</span> arrow end
+<span class="kw">label</span> <span class="id">A</span> <span class="str">"Origin"</span> color red size <span class="num">14</span></pre>
 
       <table class="mt-5 text-sm">
         <thead><tr><th>Token</th><th>Default</th><th>Accepts</th></tr></thead>
         <tbody>
-          <tr><td><code>stroke</code></td><td><code>black</code></td><td>Any CSS color: named, hex, rgb, rgba</td></tr>
-          <tr><td><code>fill</code></td><td><code>none</code></td><td>Any CSS color, or <code>none</code></td></tr>
-          <tr><td><code>width</code></td><td><code>2</code></td><td>Number ≥ 0 (pixels)</td></tr>
+          <tr><td><code>stroke</code></td><td><code>black</code></td><td>Single-token CSS color names are safest; <code>#</code> starts comments</td></tr>
+          <tr><td><code>fill</code></td><td><code>none</code></td><td>Single-token CSS color names, or <code>none</code></td></tr>
+          <tr><td><code>width</code></td><td><code>2</code></td><td>SVG stroke width</td></tr>
+          <tr><td><code>dash</code></td><td><code>null</code></td><td>SVG dash array such as <code>4,4</code></td></tr>
+          <tr><td><code>opacity</code></td><td><code>1</code></td><td>Number, commonly <code>0</code> to <code>1</code></td></tr>
+          <tr><td><code>arrow</code></td><td><code>null</code></td><td><code>start</code>, <code>end</code>, or <code>both</code></td></tr>
+          <tr><td><code>color</code></td><td><code>#222</code></td><td>Single-token CSS color names for labels</td></tr>
+          <tr><td><code>size</code></td><td><code>12</code></td><td>Label font size</td></tr>
+          <tr><td><code>use</code></td><td>n/a</td><td>Name of a declared style block</td></tr>
         </tbody>
       </table>
 
       <div class="callout-note mt-5 text-sm">
-        Invalid color names are passed directly to SVG — the browser will silently use its fallback. <strong>Negative <code>width</code></strong> is an error.
+        Invalid color names are passed directly to SVG, so browser fallback behavior applies.
       </div>
     </section>
 
@@ -476,13 +640,14 @@ Geon.<span class="id">render</span>(`
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Labels</h2>
       <p class="text-sm leading-relaxed text-muted mb-4">Attaches a text annotation to a declared shape or point. Labels are always rendered as the topmost layer, after all shapes.</p>
 
-      <pre><span class="kw">label</span> <span class="id">&lt;target&gt;</span> <span class="str">"&lt;text&gt;"</span></pre>
+      <pre><span class="kw">label</span> <span class="id">&lt;target&gt;</span> <span class="str">"&lt;text&gt;"</span> [position <span class="id">&lt;direction&gt;</span>] [style]</pre>
 
       <div class="mt-4 mb-2 text-xs font-mono text-muted uppercase tracking-widest">Examples</div>
       <pre><span class="kw">label</span> <span class="id">A</span>  <span class="str">"Origin"</span>
 <span class="kw">label</span> <span class="id">C</span>  <span class="str">"Unit Circle"</span>
 <span class="kw">label</span> <span class="id">T</span>  <span class="str">"Triangle"</span>
 <span class="kw">label</span> <span class="id">AB</span> <span class="str">"Hypotenuse"</span>
+<span class="kw">label</span> <span class="id">P</span>  <span class="str">"North-east label"</span> position northeast color crimson
 
 <span class="cm"># Multiple labels on the same target are both rendered; overlaps are auto-avoided</span>
 <span class="kw">label</span> <span class="id">A</span> <span class="str">"First"</span>
@@ -495,8 +660,14 @@ Geon.<span class="id">render</span>(`
           <tr><td>circle</td><td>Center of the circle</td></tr>
           <tr><td>segment</td><td>Midpoint of the segment</td></tr>
           <tr><td>polygon</td><td>Centroid of the polygon</td></tr>
+          <tr><td>rect</td><td>Center of the rectangle</td></tr>
+          <tr><td>plot</td><td>Middle sampled point</td></tr>
         </tbody>
       </table>
+
+      <div class="callout-note mt-5 text-sm">
+        Supported position hints are <code>north</code>, <code>south</code>, <code>east</code>, <code>west</code>, <code>northeast</code>, <code>northwest</code>, <code>southeast</code>, and <code>southwest</code>. Without a hint, labels use automatic overlap avoidance.
+      </div>
     </section>
 
     <!-- Rendering Order -->
@@ -521,6 +692,10 @@ Geon.<span class="id">render</span>(`
 
       <pre><span class="kw">circle</span> <span class="id">A</span> center (<span class="num">0</span>,<span class="num">0</span>) r <span class="num">2</span>   <span class="cm"># drawn first → underneath</span>
 <span class="kw">circle</span> <span class="id">B</span> center (<span class="num">1</span>,<span class="num">0</span>) r <span class="num">2</span>   <span class="cm"># drawn second → on top of A</span></pre>
+
+      <div class="callout-note mt-5 text-sm">
+        <code>layer &lt;name&gt;</code> is accepted as a source marker, but the current renderer still uses this fixed grid, shapes, labels order.
+      </div>
     </section>
 
     <!-- Coordinate System -->
@@ -538,7 +713,7 @@ Geon.<span class="id">render</span>(`
     <!-- JavaScript API -->
     <section id="api" class="section-anchor mb-14">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">JavaScript API</h2>
-      <p class="text-sm leading-relaxed text-muted mb-5">The global <code>Geon</code> object exposes a single function.</p>
+      <p class="text-sm leading-relaxed text-muted mb-5">The global <code>Geon</code> object exposes rendering plus parse/resolve helpers for tooling.</p>
 
       <div class="mb-3 text-xs font-mono text-muted uppercase tracking-widest">Signature</div>
       <pre>Geon.<span class="id">render</span>(<span class="id">source</span>: string, <span class="id">container</span>: HTMLElement): <span class="id">Result</span>
@@ -560,6 +735,11 @@ Geon.<span class="id">render</span>(`
 if (!result.success) {
   console.<span class="id">error</span>(<span class="str">'Geon error:'</span>, result.error);
 }</pre>
+
+      <div class="mt-6 mb-3 text-xs font-mono text-muted uppercase tracking-widest">Tooling helpers</div>
+      <pre>Geon.<span class="id">parse</span>(source)      <span class="cm"># returns { ast, styleBlocks } or throws</span>
+Geon.<span class="id">resolve</span>(source)    <span class="cm"># returns resolved scene, grid, symbols, labels, vars</span>
+Geon.<span class="id">version</span>            <span class="cm"># "2.0.0"</span></pre>
     </section>
 
     <!-- Error Reference -->
@@ -571,11 +751,11 @@ if (!result.success) {
         <thead><tr><th>Error</th><th>Trigger</th></tr></thead>
         <tbody>
           <tr>
-            <td><code>Missing scene declaration</code></td>
+            <td><code>Missing 'scene WxH'</code></td>
             <td>No <code>scene</code> statement in program</td>
           </tr>
           <tr>
-            <td><code>Missing grid declaration</code></td>
+            <td><code>Missing 'grid x ... y ...'</code></td>
             <td>No <code>grid</code> statement in program</td>
           </tr>
           <tr>
@@ -583,28 +763,32 @@ if (!result.success) {
             <td>Referencing a name that was never declared</td>
           </tr>
           <tr>
-            <td><code>Duplicate identifier 'X'</code></td>
+            <td><code>Duplicate id 'X'</code></td>
             <td>Declaring the same name twice</td>
-          </tr>
-          <tr>
-            <td><code>Circular reference</code></td>
-            <td>A point that depends on itself (directly or transitively)</td>
           </tr>
           <tr>
             <td><code>Invalid anchor 'X.prop'</code></td>
             <td>Accessing a property that does not exist on the shape (e.g. <code>circle.radius</code>)</td>
           </tr>
           <tr>
+            <td><code>Expression error in (...)</code></td>
+            <td>A coordinate expression could not be evaluated</td>
+          </tr>
+          <tr>
+            <td><code>Undefined variable or function: 'x'</code></td>
+            <td>An expression references an unknown variable or function</td>
+          </tr>
+          <tr>
+            <td><code>Division by zero</code></td>
+            <td>An expression divides by zero</td>
+          </tr>
+          <tr>
             <td><code>Polygon requires >= 3 points</code></td>
             <td>A <code>polygon</code> with fewer than 3 vertices</td>
           </tr>
           <tr>
-            <td><code>Radius must be >= 0</code></td>
+            <td><code>Invalid radius</code></td>
             <td>A circle with a negative radius</td>
-          </tr>
-          <tr>
-            <td><code>Width must be >= 0</code></td>
-            <td>A negative <code>width</code> style token</td>
           </tr>
           <tr>
             <td><code>Grid step must be > 0</code></td>
@@ -629,6 +813,14 @@ if (!result.success) {
           <tr>
             <td><code>Expected (dx,dy) after '+'</code></td>
             <td>Vector addition with non-literal right-hand side</td>
+          </tr>
+          <tr>
+            <td><code>No intersection found between 'A' and 'B'</code></td>
+            <td>Supported shapes do not intersect</td>
+          </tr>
+          <tr>
+            <td><code>Cannot intersect shapes of types ...</code></td>
+            <td>Intersection requested for unsupported shape types</td>
           </tr>
         </tbody>
       </table>
@@ -657,18 +849,18 @@ if (!result.success) {
           </div>
         </div>
 
-        <!-- Circular dependency -->
+        <!-- Expression error -->
         <div style="border:1px solid #ddd8ce; border-radius:8px; overflow:hidden;">
           <div class="px-4 py-3 flex items-start justify-between gap-4" style="background:#ede9e1;">
             <div>
-              <div class="text-sm font-semibold mb-1">Circular Dependency</div>
-              <div class="text-xs text-muted">Two or more points that form a dependency cycle</div>
+              <div class="text-sm font-semibold mb-1">Expression Errors</div>
+              <div class="text-xs text-muted">Unknown variables, unknown functions, or division by zero</div>
             </div>
             <span class="badge-error flex-shrink-0">Error</span>
           </div>
           <div class="px-4 py-3">
-            <pre style="margin:0; font-size:0.78rem;"><span class="kw">point</span> <span class="id">A</span> <span class="id">B</span> <span class="op">+</span> (<span class="num">1</span>,<span class="num">0</span>)   <span class="err"># A depends on B</span>
-<span class="kw">point</span> <span class="id">B</span> <span class="id">A</span> <span class="op">+</span> (<span class="num">0</span>,<span class="num">1</span>)   <span class="err"># B depends on A → cycle</span></pre>
+            <pre style="margin:0; font-size:0.78rem;"><span class="kw">let</span> <span class="id">r</span> = missingValue   <span class="err"># Error: undefined variable</span>
+<span class="kw">point</span> <span class="id">A</span> (<span class="num">1</span>/<span class="num">0</span>,<span class="num">0</span>)          <span class="err"># Error: division by zero</span></pre>
           </div>
         </div>
 
@@ -780,32 +972,90 @@ if (!result.success) {
     <!-- Full Example -->
     <section id="full-example" class="section-anchor mb-20">
       <h2 class="rule-accent text-2xl font-display font-bold mb-4">Full Example</h2>
-      <p class="text-sm leading-relaxed text-muted mb-5">A complete Geon program demonstrating all major features: anchor chaining, shape anchors, polygon fill, and labels.</p>
+      <p class="text-sm leading-relaxed text-muted mb-5">A complete Geon v2 program demonstrating variables, reusable styles, polar points, new primitives, plotting, intersections, and labels.</p>
 
-      <pre><span class="kw">scene</span> <span class="num">600x400</span>
-<span class="kw">grid</span> x <span class="op">-5</span> to <span class="num">5</span> step <span class="num">1</span> y <span class="op">-5</span> to <span class="num">5</span> step <span class="num">1</span>
+      <pre><span class="kw">scene</span> <span class="num">700x450</span>
+<span class="kw">grid</span> x <span class="op">-6</span> to <span class="num">6</span> step <span class="num">1</span> y <span class="op">-4</span> to <span class="num">4</span> step <span class="num">1</span>
+
+<span class="kw">let</span> <span class="id">r</span> = <span class="num">2.5</span>
+<span class="kw">let</span> <span class="id">angle</span> = <span class="num">35</span>
+
+<span class="kw">style</span> <span class="id">construction</span> {
+  stroke gray
+  width <span class="num">1</span>
+  dash <span class="num">4</span>,<span class="num">4</span>
+  opacity <span class="num">0.75</span>
+}
 
 <span class="cm"># Define anchor points</span>
 <span class="kw">point</span> <span class="id">A</span> (<span class="num">0</span>,<span class="num">0</span>)
-<span class="kw">point</span> <span class="id">B</span> (<span class="num">3</span>,<span class="num">0</span>)
+<span class="kw">point</span> <span class="id">B</span> polar (<span class="id">r</span>,<span class="id">angle</span>)
+<span class="kw">midpoint</span> <span class="id">M</span> of <span class="id">A</span> <span class="id">B</span>
 
-<span class="cm"># Draw a segment between them</span>
-<span class="kw">segment</span> <span class="id">AB</span> from <span class="id">A</span> to <span class="id">B</span> stroke <span class="num">#555</span> width <span class="num">2</span>
+<span class="cm"># Core geometry</span>
+<span class="kw">segment</span> <span class="id">AB</span> from <span class="id">A</span> to <span class="id">B</span> stroke gray width <span class="num">2</span> arrow end
+<span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="id">r</span> stroke blue fill lightblue opacity <span class="num">0.35</span>
+<span class="kw">ellipse</span> <span class="id">E</span> center <span class="id">M</span> rx <span class="num">1.4</span> ry <span class="num">0.6</span> stroke purple fill plum opacity <span class="num">0.35</span>
+<span class="kw">rect</span> <span class="id">R</span> at (<span class="op">-5</span>,<span class="num">3</span>) w <span class="num">2</span> h <span class="num">1.25</span> stroke black fill gainsboro opacity <span class="num">0.5</span>
+<span class="kw">arc</span> <span class="id">K</span> center <span class="id">A</span> r <span class="num">3</span> from <span class="num">20</span> to <span class="num">150</span> stroke orange width <span class="num">3</span>
 
-<span class="cm"># Circle centered on A</span>
-<span class="kw">circle</span> <span class="id">C</span> center <span class="id">A</span> r <span class="num">2</span> stroke blue fill rgba(<span class="num">0</span>,<span class="num">0</span>,<span class="num">255</span>,<span class="num">0.08</span>)
-
-<span class="cm"># Triangle using A, B, and a literal coordinate</span>
-<span class="kw">polygon</span> <span class="id">T</span> points <span class="id">A</span> <span class="id">B</span> (<span class="num">1</span>,<span class="num">3</span>) fill rgba(<span class="num">255</span>,<span class="num">100</span>,<span class="num">0</span>,<span class="num">0.15</span>) stroke orange
-
-<span class="cm"># Point derived from circle center</span>
-<span class="kw">point</span> <span class="id">P</span> <span class="id">C</span>.center <span class="op">+</span> (<span class="num">1</span>,<span class="num">0</span>)
+<span class="cm"># Lines, curves, and derived points</span>
+<span class="kw">line</span> <span class="id">L</span> through (<span class="op">-5</span>,<span class="op">-1</span>) (<span class="num">5</span>,<span class="num">2</span>) use <span class="id">construction</span>
+<span class="kw">ray</span> <span class="id">Y</span> from <span class="id">A</span> through (<span class="num">1</span>,<span class="num">1</span>) stroke crimson arrow end
+<span class="kw">bezier</span> <span class="id">BZ</span> from (<span class="op">-4</span>,<span class="op">-2</span>) control (<span class="op">-2</span>,<span class="num">3</span>) (<span class="num">2</span>,<span class="op">-3</span>) to (<span class="num">4</span>,<span class="num">2</span>) stroke green width <span class="num">2</span>
+<span class="kw">plot</span> <span class="id">P</span> y=x^<span class="num">2</span>-<span class="num">2</span> from <span class="op">-3</span> to <span class="num">3</span> step <span class="num">0.05</span> stroke crimson width <span class="num">2</span>
+<span class="kw">intersect</span> <span class="id">X</span> <span class="id">L</span> <span class="id">C</span>
 
 <span class="cm"># Labels</span>
-<span class="kw">label</span> <span class="id">A</span>  <span class="str">"Origin"</span>
-<span class="kw">label</span> <span class="id">C</span>  <span class="str">"Circle C"</span>
-<span class="kw">label</span> <span class="id">T</span>  <span class="str">"Triangle"</span>
-<span class="kw">label</span> <span class="id">AB</span> <span class="str">"Base"</span></pre>
+<span class="kw">label</span> <span class="id">A</span>  <span class="str">"Origin"</span> position southwest size <span class="num">14</span> color black
+<span class="kw">label</span> <span class="id">B</span>  <span class="str">"Polar point"</span> position northeast
+<span class="kw">label</span> <span class="id">M</span>  <span class="str">"Midpoint"</span> position south
+<span class="kw">label</span> <span class="id">C</span>  <span class="str">"Circle C"</span> color blue
+<span class="kw">label</span> <span class="id">X</span>  <span class="str">"Intersection"</span>
+<span class="kw">label</span> <span class="id">P</span>  <span class="str">"y = x^2 - 2"</span> color crimson</pre>
+
+      <div class="geon-live mt-6">
+        <div class="geon-live-header">
+          <span>Rendered by local geon.js</span>
+          <span>Full v2 example</span>
+        </div>
+        <div id="full-example-preview" class="geon-live-canvas"></div>
+      </div>
+      <script type="text/plain" id="full-example-source">scene 700x450
+grid x -6 to 6 step 1 y -4 to 4 step 1
+
+let r = 2.5
+let angle = 35
+
+style construction {
+  stroke gray
+  width 1
+  dash 4,4
+  opacity 0.75
+}
+
+point A (0,0)
+point B polar (r,angle)
+midpoint M of A B
+
+segment AB from A to B stroke gray width 2 arrow end
+circle C center A r r stroke blue fill lightblue opacity 0.35
+ellipse E center M rx 1.4 ry 0.6 stroke purple fill plum opacity 0.35
+rect R at (-5,3) w 2 h 1.25 stroke black fill gainsboro opacity 0.5
+arc K center A r 3 from 20 to 150 stroke orange width 3
+
+line L through (-5,-1) (5,2) use construction
+ray Y from A through (1,1) stroke crimson arrow end
+bezier BZ from (-4,-2) control (-2,3) (2,-3) to (4,2) stroke green width 2
+plot P y=x^2-2 from -3 to 3 step 0.05 stroke crimson width 2
+intersect X L C
+
+label A  "Origin" position southwest size 14 color black
+label B  "Polar point" position northeast
+label M  "Midpoint" position south
+label C  "Circle C" color blue
+label X  "Intersection"
+label P  "y = x^2 - 2" color crimson</script>
     </section>
 
     <!-- Footer -->
@@ -813,7 +1063,7 @@ if (!result.success) {
       <div class="flex items-center justify-between">
         <div>
           <span style="font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:900;">Geon</span>
-          <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:#6b6457; margin-left:8px;">v0.1</span>
+          <span style="font-family:'DM Mono',monospace; font-size:0.68rem; color:#6b6457; margin-left:8px;">v2.0</span>
         </div>
         <p style="font-family:'DM Mono',monospace; font-size:0.7rem; color:#9a9080;">Built with ❤️ by <a href="https://portfolio.sakhawatadib.com" target="_blank" class="text-blue-500 hover:text-blue-700">Sakhadib</a></p>
       </div>
@@ -823,7 +1073,24 @@ if (!result.success) {
 </div>
 
 <!-- Active nav link highlighting -->
+<script src="./geon.js"></script>
 <script>
+  const demos = [
+    { source: 'quickstart-source', target: 'quickstart-preview' },
+    { source: 'full-example-source', target: 'full-example-preview' },
+  ];
+
+  demos.forEach(({ source, target }) => {
+    const sourceEl = document.getElementById(source);
+    const targetEl = document.getElementById(target);
+    if (!sourceEl || !targetEl) return;
+    if (!window.Geon) {
+      targetEl.textContent = 'Unable to load local geon.js';
+      return;
+    }
+    Geon.render(sourceEl.textContent.trim(), targetEl);
+  });
+
   const links = document.querySelectorAll('.nav-link');
   const sections = document.querySelectorAll('.section-anchor');
 
