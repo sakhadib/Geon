@@ -9,7 +9,8 @@
 [![No Dependencies](https://img.shields.io/badge/dependencies-none-3a7d3a?style=flat-square)](#)
 [![Single File](https://img.shields.io/badge/size-single%20file-3a7d3a?style=flat-square)](#)
 
-[**Documentation**](https://sakhadib.github.io/Geon/) · [**Live Demo**](https://sakhadib.github.io/Geon/live.html) · [**Releases**](https://github.com/sakhadib/Geon/releases)
+
+[**Documentation**](https://sakhadib.github.io/Geon/) · [**Live Demo**](https://sakhadib.github.io/Geon/live.html) · [**Releases**](https://github.com/sakhadib/Geon/releases) · [**LLM Context (GEON-SKILL)**](GEON-SKILL.md)
 
 </div>
 
