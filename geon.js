@@ -123,7 +123,7 @@
   }
 
   function parseStyle(tokens, idx) {
-    const style = { stroke: "black", fill: "none", width: 2 };
+    const style = { stroke: "black", fill: "none", width: 2, color: "#222", size: 12 };
     while (idx < tokens.length) {
       const tok = tokens[idx];
       if (tok.type !== "WORD") { idx++; continue; }
@@ -136,6 +136,13 @@
       } else if (tok.value === "width" && idx + 1 < tokens.length) {
         const w = Number(tokens[idx + 1].value);
         style.width = isNaN(w) ? 2 : w;
+        idx += 2;
+      } else if (tok.value === "color" && idx + 1 < tokens.length) {
+        style.color = tokens[idx + 1].value || tokens[idx + 1].raw || "#222";
+        idx += 2;
+      } else if (tok.value === "size" && idx + 1 < tokens.length) {
+        const s = Number(tokens[idx + 1].value);
+        style.size = isNaN(s) ? 12 : s;
         idx += 2;
       } else {
         idx++;
@@ -250,11 +257,12 @@
 
       // ---- label ----
       case "label": {
-        // label <target> "<text>"
+        // label <target> "<text>" [style]
         if (tokens.length < 3) fail("Malformed label", lineNo);
         const target = tokens[1].value;
         if (tokens[2].type !== "STRING") fail("Expected quoted string in label", lineNo);
-        return { kind: "label", target, text: tokens[2].value, lineNo };
+        const style = parseStyle(tokens, 3);
+        return { kind: "label", target, text: tokens[2].value, style, lineNo };
       }
 
       default:
@@ -567,7 +575,17 @@
     svg.appendChild(shapesG);
 
     // ---- Labels (on top) ----
-    const labelsG = el("g", { "class": "geon-labels", "font-size": "12", "font-family": "sans-serif", "text-anchor": "middle" });
+    const labelsG = el("g", { "class": "geon-labels", "font-family": "sans-serif", "text-anchor": "middle" });
+
+    function rectIntersect(r1, r2) {
+      const pad = 2; // small padding
+      return !(r2.x >= r1.x + r1.w + pad || 
+               r2.x + r2.w + pad <= r1.x || 
+               r2.y >= r1.y + r1.h + pad || 
+               r2.y + r2.h + pad <= r1.y);
+    }
+
+    const placedBoxes = [];
 
     for (const lbl of labels) {
       const sym = symbols[lbl.target];
@@ -579,7 +597,48 @@
       else if (sym.kind === "polygon") anchor = sym.anchors.centroid;
       else continue;
       const [sx, sy] = pt(...anchor);
-      const t = el("text", { x: sx, y: sy - 5, fill: "#222" });
+
+      const fontSize = lbl.style ? lbl.style.size : 12;
+      const approxW = lbl.text.length * (fontSize * 0.55);
+      const approxH = fontSize * 1.2;
+
+      let px = sx;
+      let py = sy - 5;
+      let box = { x: px - approxW / 2, y: py - approxH * 0.8, w: approxW, h: approxH };
+
+      let attempts = 0;
+      let overlapping = true;
+      let currentAngle = -Math.PI / 2; // Start upwards
+      let currentR = 0;
+
+      while (attempts < 100) {
+        overlapping = false;
+        for (const p of placedBoxes) {
+          if (rectIntersect(box, p)) {
+            overlapping = true;
+            break;
+          }
+        }
+        if (!overlapping) break;
+
+        // Advance Archimedean spiral
+        currentAngle += 0.5; // step angle
+        currentR += 2.0; // increase radius
+
+        px = sx + Math.cos(currentAngle) * currentR;
+        py = sy - 5 + Math.sin(currentAngle) * currentR;
+        box = { x: px - approxW / 2, y: py - approxH * 0.8, w: approxW, h: approxH };
+        attempts++;
+      }
+
+      placedBoxes.push(box);
+
+      const t = el("text", { 
+        x: px, 
+        y: py, 
+        fill: lbl.style ? lbl.style.color : "#222",
+        "font-size": fontSize
+      });
       t.textContent = lbl.text;
       labelsG.appendChild(t);
     }

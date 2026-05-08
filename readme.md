@@ -213,14 +213,14 @@ polygon Q points (-1,-1) (1,-1) (1,1) (-1,1) fill rgba(255,0,0,0.2)
 Attaches a text annotation to any declared identifier. Labels are always rendered on the topmost layer, after all shapes.
 
 ```
-label <target> "<text>"
+label <target> "<text>" [style]
 ```
 
 ```
 label A  "Origin"
-label C  "Unit Circle"
-label T  "Triangle"
-label AB "Hypotenuse"
+label C  "Unit Circle" color blue
+label T  "Triangle" size 10
+label AB "Hypotenuse" color red size 14
 ```
 
 | Target type | Label anchors at |
@@ -230,7 +230,7 @@ label AB "Hypotenuse"
 | segment | Midpoint of the segment |
 | polygon | Centroid of the polygon |
 
-Multiple labels on the same target are both rendered (stacked).
+Multiple labels on the same target are both rendered. When labels would overlap, Geon repositions later labels to nearby free space.
 
 ---
 
@@ -269,19 +269,22 @@ point B A + A    # Error
 
 ## Styling
 
-Style tokens are appended inline after the shape declaration. All tokens are optional.
+Style tokens are appended inline after the shape or label declaration. All tokens are optional.
 
 ```
 circle C center A r 2  stroke blue  fill rgba(0,0,255,0.15)  width 3
 segment S from A to B  stroke #e07b54  width 2
 polygon T points A B (1,2)  fill rgba(255,0,0,0.2)  stroke red
+label A "Origin" color red size 14
 ```
 
 | Token | Default | Accepts |
 |---|---|---|
-| `stroke` | `black` | Any CSS color — named, hex, rgb, rgba |
-| `fill` | `none` | Any CSS color, or `none` |
-| `width` | `2` | Number ≥ 0 |
+| `stroke` | `black` | Any CSS color — named, hex, rgb, rgba (shapes) |
+| `fill` | `none` | Any CSS color, or `none` (shapes) |
+| `width` | `2` | Number ≥ 0 (shapes) |
+| `color` | `#222` | Any CSS color (labels) |
+| `size` | `12` | Number ≥ 0 (labels) |
 
 ---
 
@@ -374,7 +377,7 @@ All errors stop execution immediately and include a line number.
 | Self-intersecting polygon | ✅ Allowed — SVG handles rendering |
 | Coordinates outside grid bounds | ✅ Allowed — SVG clips naturally |
 | Extra whitespace between tokens | ✅ Allowed |
-| Multiple labels on the same target | ✅ Allowed — both rendered (stacked) |
+| Multiple labels on the same target | ✅ Allowed — both rendered, with automatic overlap avoidance |
 | Invalid CSS color name in `stroke` | ✅ Allowed — SVG silently falls back |
 
 ---
@@ -402,10 +405,10 @@ polygon T points A B (1,3) fill rgba(255,100,0,0.15) stroke orange
 point P C.center + (1,0)
 
 # Labels
-label A  "Origin"
-label C  "Circle C"
-label T  "Triangle"
-label AB "Base"
+label A  "Origin" size 14 color black
+label C  "Circle C" color blue
+label T  "Triangle" color orange
+label AB "Base" color #555
 ```
 
 ---
